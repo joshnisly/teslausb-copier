@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import configparser
 import os
 import shutil
 import subprocess
@@ -40,7 +41,9 @@ def process_dir(dir_path, target_dir):
 
 
 def main():
-    process_dir(sys.argv[1], sys.argv[2])
+    parser = configparser.ConfigParser()
+    parser.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
+    process_dir(parser.get('Paths', 'Source'), parser.get('Paths', 'Destination'))
 
 
 if __name__ == '__main__':
