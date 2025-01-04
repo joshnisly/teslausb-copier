@@ -20,7 +20,7 @@ def handle_snapshot(path, target_dir):
                     continue
 
                 date, ignored, name = entry.partition('_')
-                target_path = os.path.join(target_dir, date, name)
+                target_path = os.path.join(target_dir, date, entry)
                 source_path = os.path.join(recent_clips_dir, entry)
                 if os.path.exists(target_path) and os.stat(target_path).st_size >= os.stat(source_path).st_size:
                     continue
@@ -43,7 +43,20 @@ def process_dir(dir_path, target_dir):
 def main():
     parser = configparser.ConfigParser()
     parser.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
-    process_dir(parser.get('Paths', 'Source'), parser.get('Paths', 'Destination'))
+    # Mount SMB share
+    subprocess.check_call([
+        'sudo', 'mount',
+        '-t', 'cifs',
+        '-o', 'username=%s,password=%s' % (parser.get('SMB', 'Username'), parser.get('SMB', 'Password')),
+        '-o', 'user,rw,uid=%i' % os.getuid(),
+        '//%s/%s' % (parser.get('SMB', 'Host'), parser.get('SMB', 'Share')),
+        parser.get('Paths', 'TempMount')
+    ])
+    try:
+        dest = os.path.join(parser.get('Paths', 'TempMount'), 'RecentClips')
+        process_dir(parser.get('Paths', 'Source'), dest)
+    finally:
+        subprocess.call(['sudo', 'umount', parser.get('Paths', 'TempMount')])
 
 
 if __name__ == '__main__':
