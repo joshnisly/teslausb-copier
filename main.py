@@ -22,7 +22,7 @@ def handle_snapshot(path, target_dir):
                 date, ignored, name = entry.partition('_')
                 target_path = os.path.join(target_dir, date, name)
                 source_path = os.path.join(recent_clips_dir, entry)
-                if os.path.exists(target_path) and os.stat(target_path).st_size == os.stat(source_path).st_size:
+                if os.path.exists(target_path) and os.stat(target_path).st_size >= os.stat(source_path).st_size:
                     continue
 
                 print('Copying ' + entry + '...')
